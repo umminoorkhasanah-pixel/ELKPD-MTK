@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>e-LKPD Matematika X — Sampahku, Tanggung Jawabku</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --green: #1f5c3f;
+      --green-dark: #16442e;
+      --green-soft: #e6f1ea;
+      --sage: #dce9de;
+      --cream: #f7f5eb;
+      --ink: #1e3328;
+      --muted: #5f7267;
+      --line: #dfe7dd;
+      --white: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body, button, input, select, textarea { font-family: "DM Sans", sans-serif; }
+    body {
+      margin: 0;
+      background: var(--cream);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.55;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    h1, h2, h3 { font-family: "Outfit", sans-serif; line-height: 1.16; margin: 0 0 .65em; }
+    h1 { font-size: clamp(2.1rem, 4.5vw, 3.35rem); letter-spacing: -.035em; }
+    h2 { font-size: clamp(1.5rem, 2.6vw, 2.05rem); letter-spacing: -.025em; }
+    h3 { font-size: 1.08rem; }
+    p { margin: .25em 0 1em; }
+
+    /* Topbar */
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .topbar-inner {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 11px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "Outfit", sans-serif;
+      font-weight: 800;
+      color: var(--green);
+      font-size: 1.05rem;
+    }
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: var(--green);
+      color: #fff;
+      display: grid;
+      place-items: center;
+    }
+    .brand-icon svg, .btn svg { width: 16px; height: 16px; }
+    .top-right { display: flex; align-items: center; gap: 12px; }
+    .session-note { font-size: .82rem; color: var(--muted); }
+
+    /* Layout */
+    .layout {
+      max-width: 1220px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 22px 48px;
+      display: grid;
+      grid-template-columns: 235px minmax(0, 1fr);
+      gap: 26px;
+      flex: 1;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      align-self: start;
+      position: sticky;
+      top: 78px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px 12px;
+    }
+    .sidebar-head {
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      color: var(--muted);
+      padding: 4px 12px 10px;
+      text-transform: uppercase;
+    }
+    .nav-btn {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      border-radius: 10px;
+      padding: 8px 11px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      text-align: left;
+      color: #485b50;
+      font-size: .83rem;
+      line-height: 1.3;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .nav-btn:hover { background: #eef5ef; }
+    .nav-btn.active {
+      background: var(--green);
+      color: #fff;
+      font-weight: 700;
+    }
+    .nav-num { font-weight: 700; opacity: .75; flex: none; }
+
+    /* Main Content */
+    .main-col { min-width: 0; }
+    .progress-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+      font-size: .82rem;
+      color: var(--muted);
+    }
+    .progress-track {
+      flex: 1;
+      height: 7px;
+      background: #e1ece2;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #4e9168;
+      border-radius: 99px;
+      transition: width .25s ease;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: clamp(20px, 3.5vw, 32px);
+      margin-bottom: 16px;
+      box-shadow: 0 6px 20px rgba(24, 60, 42, .03);
+    }
+
+    /* Hero Cover */
+    .hero-card {
+      background: linear-gradient(125deg, #1b5439 0%, #2d6f4e 100%);
+      color: #fff;
+      border: 0;
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      align-items: center;
+      gap: 24px;
+      padding: clamp(24px, 4vw, 40px);
+    }
+    .hero-kicker {
+      font-size: .74rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #cfe6d6;
+      margin-bottom: 12px;
+    }
+    .hero-sub { color: #e4f1e7; font-size: 1.02rem; max-width: 480px; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 22px; }
+    .pill {
+      background: rgba(255, 255, 255, .14);
+      border: 1px solid rgba(255, 255, 255, .22);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+    .hero-visual {
+      background: #779f7d;
+      border-radius: 999px;
+      aspect-ratio: 1 / 1;
+      max-width: 280px;
+      width: 100%;
+      justify-self: center;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    /* Forms & Elements */
+    .sec-tag {
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      color: #4f8564;
+      margin-bottom: 6px;
+    }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .grid-8 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: .88rem; margin-bottom: 14px; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid #cdd9ce;
+      border-radius: 11px;
+      background: #fcfdfb;
+      padding: 10px 12px;
+      font-size: .92rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .field textarea { min-height: 82px; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--green);
+      background: #fff;
+    }
+
+    .callout {
+      background: #eef5ef;
+      border-left: 4px solid #6fa37e;
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #2c4a39;
+      font-size: .9rem;
+      margin: 14px 0;
+    }
+    .q-block { padding: 14px 0; border-top: 1px solid #edf2ec; }
+    .q-block:first-of-type { border-top: 0; padding-top: 4px; }
+    .q-badge {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: .8rem;
+      font-weight: 800;
+      margin-right: 6px;
+    }
+
+    .stat-card {
+      background: #f6faf6;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+    .stat-k { font-size: .75rem; color: var(--muted); font-weight: 700; }
+    .stat-v { font-family: "Outfit", sans-serif; font-size: 1.35rem; font-weight: 800; color: var(--green); margin-top: 2px; }
+
+    .group-box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fcfdfb;
+    }
+    .group-title { font-family: "Outfit", sans-serif; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+    .group-sub { font-size: .8rem; color: var(--muted); margin-bottom: 12px; }
+
+    .boxplot-wrap {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: #fafcfa;
+      overflow-x: auto;
+    }
+
+    /* Buttons & Footer Nav */
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 9px 15px;
+      font-weight: 700;
+      font-size: .86rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      transition: transform .15s, background .15s;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--green-dark); }
+    .btn-light { background: #fff; color: var(--green); }
+    .btn-soft { background: var(--green-soft); color: var(--green); }
+    .btn-outline { background: #fff; color: var(--ink); border-color: #d4dfd5; }
+
+    .page-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .page-nav-left { display: flex; gap: 8px; }
+
+    .page { display: none; }
+    .page.active { display: block; animation: fadeIn .22s ease; }
+    @keyframes fadeIn { from { opacity: .35; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .site-footer {
+      background: var(--green-dark);
+      color: #dcebe0;
+      text-align: center;
+      padding: 14px 20px;
+      font-size: .82rem;
+    }
+    .status-msg { font-size: .86rem; font-weight: 700; color: var(--green); margin-top: 8px; min-height: 20px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .hero-card { grid-template-columns: 1fr; }
+      .grid-2, .grid-4, .grid-8 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .grid-2, .grid-4, .grid-8 { grid-template-columns: 1fr; }
+      .session-note { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-icon"><i data-lucide="leaf"></i></span>
+        <span>e-LKPD • Matematika X</span>
+      </div>
+      <div class="top-right">
+        <span class="session-note">Jawaban aktif selama sesi</span>
+        <button type="button" class="btn btn-soft" id="btnSave"><i data-lucide="save"></i> Simpan</button>
+        <button type="button" class="btn btn-primary" id="btnPdfTop"><i data-lucide="file-down"></i> Unduh PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Daftar Halaman">
+      <div class="sidebar-head">Daftar Halaman</div>
+      <div id="tocList"></div>
+    </aside>
+
+    <main class="main-col">
+      <div class="progress-bar-row">
+        <span id="pageIndicator">Halaman 1 dari 15 • Sampul</span>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <span id="progressPct">0%</span>
+      </div>
+
+      <!-- 01 SAMPUL -->
+      <section class="page active" data-page="1">
+        <div class="card hero-card">
+          <div>
+            <div class="hero-kicker">MA Ihyaul Ulum Wedarijaksa • e-LKPD Interaktif</div>
+            <h1>SAMPAHKU,<br/>TANGGUNG<br/>JAWABKU</h1>
+            <p class="hero-sub">Mengenal Boxplot melalui Data Sampah Pribadi</p>
+            <div class="pill-row">
+              <span class="pill">Matematika • Kelas X/E</span>
+              <span class="pill">Statistika • PBL</span>
+              <span class="pill">2 × 45 menit</span>
+            </div>
+            <button type="button" class="btn btn-light" data-go="2">MULAI BELAJAR</button>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <svg viewBox="0 0 180 180" width="165" height="165" fill="none">
+              <path d="M45 92L90 52L135 92V132H45V92Z" fill="#f3ead2" />
+              <path d="M38 95L90 48L142 95" stroke="#2d523a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="81" y="102" width="18" height="30" fill="#c7e2cf"/>
+              <circle cx="62" cy="108" r="7" fill="#f5d5b8"/>
+              <rect x="55" y="116" width="14" height="22" rx="4" fill="#d9e7dc"/>
+              <circle cx="118" cy="108" r="7" fill="#e6b88a"/>
+              <rect x="111" y="116" width="14" height="22" rx="4" fill="#f2d6a2"/>
+              <path d="M28 138H152" stroke="#3c674a" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Belajar dari sampah yang kita hasilkan</h2>
+          <p>Kumpulkan data nyata kelompokmu, temukan cerita di balik boxplot, lalu susun langkah kecil untuk merawat bumi. Pengumpulan dan penimbangan sampah dilakukan sebelum pembelajaran.</p>
+        </div>
+      </section>
+
+      <!-- 02 IDENTITAS SISWA -->
+      <section class="page" data-page="2">
+        <div class="card">
+          <div class="sec-tag">01 • Persiapan</div>
+          <h2>Identitas siswa</h2>
+          <p>Isi identitasmu agar tercantum pada hasil pekerjaan.</p>
+          <div class="grid-2">
+            <label class="field">Nama siswa
+              <input type="text" class="lkpd-field" id="f_nama" placeholder="Masukkan nama lengkap" />
+            </label>
+            <label class="field">Kelas
+              <input type="text" class="lkpd-field" id="f_kelas" placeholder="Contoh: X-A" />
+            </label>
+            <label class="field">Nomor absen
+              <input type="text" class="lkpd-field" id="f_absen" placeholder="Contoh: 01" />
+            </label>
+            <label class="field">Kelompok
+              <select class="lkpd-field" id="f_kelompok">
+                <option value="Kelompok 1">Kelompok 1</option>
+                <option value="Kelompok 2">Kelompok 2</option>
+                <option value="Kelompok 3">Kelompok 3</option>
+                <option value="Kelompok 4">Kelompok 4</option>
+              </select>
+            </label>
+            <label class="field">Nama anggota kelompok
+              <textarea class="lkpd-field" id="f_anggota" placeholder="Tuliskan nama anggota kelompokmu"></textarea>
+            </label>
+            <label class="field">Tanggal pengerjaan
+              <input type="date" class="lkpd-field" id="f_tanggal" />
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 TUJUAN DAN PETUNJUK -->
+      <section class="page" data-page="3">
+        <div class="card">
+          <div class="sec-tag">02 • Arah Belajar</div>
+          <h2>Tujuan dan petunjuk</h2>
+          <p>Setelah kegiatan ini, kamu dapat:</p>
+          <ol style="padding-left:20px;line-height:1.75">
+            <li>Mengurutkan data kuantitatif.</li>
+            <li>Menentukan minimum, Q1, median, Q3, dan maksimum.</li>
+            <li>Menghitung jangkauan interkuartil (IQR).</li>
+            <li>Membuat diagram boxplot.</li>
+            <li>Menginterpretasikan boxplot.</li>
+            <li>Membandingkan distribusi data menggunakan boxplot.</li>
+            <li>Menggunakan hasil analisis data untuk menyusun rekomendasi pengurangan sampah.</li>
+            <li>Merefleksikan tanggung jawab manusia terhadap lingkungan berdasarkan nilai-nilai ekoteologi.</li>
+          </ol>
+          <div class="callout">
+            <strong>Cara menggunakan:</strong> Kerjakan halaman secara berurutan. Masukkan delapan hasil penimbangan nyata kelompokmu pada halaman 6. Perhitungan dan grafik akan mengikuti perubahan data. Semua jawaban bisa diperbaiki kapan saja melalui daftar halaman. Persentase di atas menunjukkan isian yang sudah lengkap.
+          </div>
+          <p style="font-size:.9rem"><strong>Alokasi:</strong> 2 × 45 menit; pengumpulan data dilakukan sebelum pembelajaran. <strong>Model:</strong> Problem Based Learning (PBL).</p>
+        </div>
+      </section>
+
+      <!-- 04 ORIENTASI MASALAH -->
+      <section class="page" data-page="4">
+        <div class="card">
+          <div class="sec-tag">03 • Orientasi Masalah</div>
+          <h2>Dari kebiasaan menuju pertanyaan</h2>
+          <div class="callout" style="text-align:center;font-size:1.15rem">🧴 &nbsp; 📄 &nbsp; ⚖️ &nbsp; 🎓 &nbsp; 🌿</div>
+          <div class="callout">
+            “Setiap hari manusia menghasilkan sampah dari berbagai aktivitas. Sebagai siswa madrasah, kita memiliki tanggung jawab menjaga lingkungan. Namun, apakah kita mengetahui berapa banyak sampah yang kita hasilkan sendiri setiap hari? Bagaimana matematika dapat membantu kita memahami dan mengurangi permasalahan tersebut?”
+          </div>
+          <div class="q-block">
+            <label class="field"><span class="q-badge">1</span> Mengapa jumlah sampah setiap siswa berbeda?
+              <textarea class="lkpd-field" id="f_q4_1" placeholder="Tuliskan pendapatmu..."></textarea>
+            </label>
+          </div>
+          <div class="q-block">
+            <label class="field"><span class="q-badge">2</span> Apa dampak sampah yang tidak dikelola dengan baik?
+              <textarea class="lkpd-field" id="f_q4_2" placeholder="Tuliskan dampak lingkungan dan sosialnya..."></textarea>
+            </label>
+          </div>
+          <div class="q-block">
+            <label class="field"><span class="q-badge">3</span> Bagaimana statistika membantu memahami masalah sampah?
+              <textarea class="lkpd-field" id="f_q4_3" placeholder="Hubungkan dengan penyajian dan ukuran penyebaran data..."></textarea>
+            </label>
+          </div>
+          <div class="q-block">
+            <label class="field"><span class="q-badge">4</span> Apa hubungan menjaga lingkungan dengan tanggung jawab manusia terhadap ciptaan Tuhan?
+              <textarea class="lkpd-field" id="f_q4_4" placeholder="Tuliskan refleksimu..."></textarea>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 PENGORGANISASIAN KELOMPOK -->
+      <section class="page" data-page="5">
+        <div class="card">
+          <div class="sec-tag">04 • Organisasi PBL</div>
+          <h2>Pengorganisasian kelompok</h2>
+          <p>32 siswa dibagi menjadi 4 kelompok, masing-masing 8 siswa. Tentukan pembagian peran bersama kelompokmu.</p>
+          <div class="grid-2" id="groupGrid"></div>
+        </div>
+      </section>
+
+      <!-- 06 PENGUMPULAN DATA -->
+      <section class="page" data-page="6">
+        <div class="card">
+          <div class="sec-tag">05 • Data Nyata</div>
+          <h2>Pengumpulan data (8 anggota kelompok)</h2>
+          <p>Masukkan berat sampah harian (dalam gram atau kg) dari 8 anggota kelompokmu. Nilai akan otomatis terurut dan dihitung statistiknya.</p>
+          <div class="grid-8" id="dataInputsGrid"></div>
+          <div class="callout" id="dataSummaryText">Belum ada data numerik valid yang dimasukkan.</div>
+        </div>
+      </section>
+
+      <!-- 07 MENGURUTKAN DATA -->
+      <section class="page" data-page="7">
+        <div class="card">
+          <div class="sec-tag">06 • Pengolahan Awal</div>
+          <h2>Mengurutkan data</h2>
+          <p>Data terurut dari terkecil hingga terbesar berdasarkan isian pada halaman 6:</p>
+          <div class="callout" id="sortedDataBox" style="font-weight:700;font-size:1rem">-</div>
+          <label class="field"><span class="q-badge">1</span> Apa yang kamu temukan setelah mengurutkan data dari terkecil ke terbesar?
+            <textarea class="lkpd-field" id="f_q7_1" placeholder="Tuliskan pengamatanmu..."></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- 08 LIMA NILAI PENTING -->
+      <section class="page" data-page="8">
+        <div class="card">
+          <div class="sec-tag">07 • Ringkasan Lima Angka</div>
+          <h2>Lima nilai penting &amp; IQR</h2>
+          <div class="grid-4" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:16px">
+            <div class="stat-card"><div class="stat-k">Minimum (Min)</div><div class="stat-v" id="st_min">-</div></div>
+            <div class="stat-card"><div class="stat-k">Kuartil 1 (Q1)</div><div class="stat-v" id="st_q1">-</div></div>
+            <div class="stat-card"><div class="stat-k">Median (Q2)</div><div class="stat-v" id="st_med">-</div></div>
+            <div class="stat-card"><div class="stat-k">Kuartil 3 (Q3)</div><div class="stat-v" id="st_q3">-</div></div>
+            <div class="stat-card"><div class="stat-k">Maksimum (Max)</div><div class="stat-v" id="st_max">-</div></div>
+            <div class="stat-card"><div class="stat-k">Jangkauan Interkuartil (IQR = Q3 − Q1)</div><div class="stat-v" id="st_iqr">-</div></div>
+          </div>
+          <label class="field"><span class="q-badge">1</span> Jelaskan arti nilai Q1, Median, dan Q3 terhadap data sampah kelompokmu!
+            <textarea class="lkpd-field" id="f_q8_1" placeholder="Tuliskan penjelasanmu..."></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- 09 MEMBUAT BOXPLOT -->
+      <section class="page" data-page="9">
+        <div class="card">
+          <div class="sec-tag">08 • Visualisasi Data</div>
+          <h2>Membuat boxplot</h2>
+          <p>Diagram kotak garis (boxplot) berikut diperbarui otomatis dari 8 data kelompokmu:</p>
+          <div class="boxplot-wrap">
+            <svg id="boxplotSvg" viewBox="0 0 680 170" width="100%" height="170" role="img" aria-label="Diagram Boxplot"></svg>
+          </div>
+          <label class="field" style="margin-top:14px"><span class="q-badge">1</span> Bagaimana posisi kotak (Q1–Q3) dan garis median menggambarkan penyebaran data?
+            <textarea class="lkpd-field" id="f_q9_1" placeholder="Tuliskan analisis bentuk kotak dan whisker..."></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- 10 INTERPRETASI BOXPLOT -->
+      <section class="page" data-page="10">
+        <div class="card">
+          <div class="sec-tag">09 • Pemaknaan</div>
+          <h2>Interpretasi boxplot</h2>
+          <label class="field"><span class="q-badge">1</span> Siapa/bagian mana yang berada pada 25% data tertinggi dan 25% data terendah?
+            <textarea class="lkpd-field" id="f_q10_1"></textarea>
+          </label>
+          <label class="field"><span class="q-badge">2</span> Apakah terdapat nilai ekstrem (pencilan/outlier) atau selisih yang sangat mencolok? Jelaskan!
+            <textarea class="lkpd-field" id="f_q10_2"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- 11 PERBANDINGAN ANTARKELOMPOK -->
+      <section class="page" data-page="11">
+        <div class="card">
+          <div class="sec-tag">10 • Komparasi</div>
+          <h2>Perbandingan antarkelompok</h2>
+          <div class="grid-2">
+            <label class="field">Median kelompok lain (pembanding)
+              <input type="number" step="any" class="lkpd-field" id="f_comp_med" placeholder="Contoh: 150" />
+            </label>
+            <label class="field">IQR kelompok lain (pembanding)
+              <input type="number" step="any" class="lkpd-field" id="f_comp_iqr" placeholder="Contoh: 60" />
+            </label>
+          </div>
+          <label class="field"><span class="q-badge">1</span> Bandingkan tingkat dan keragaman timbulan sampah kelompokmu dengan kelompok lain!
+            <textarea class="lkpd-field" id="f_q11_1"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- 12 REFLEKSI EKOTEOLOGI -->
+      <section class="page" data-page="12">
+        <div class="card">
+          <div class="sec-tag">11 • Cinta Lingkungan</div>
+          <h2>Refleksi ekoteologi</h2>
+          <p>Menjaga kebersihan dan mengelola sampah adalah wujud amanah manusia merawat bumi.</p>
+          <label class="field"><span class="q-badge">1</span> Kebiasaan sehari-hari apa yang paling perlu diperbaiki agar tidak membebani lingkungan?
+            <textarea class="lkpd-field" id="f_q12_1"></textarea>
+          </label>
+          <label class="field"><span class="q-badge">2</span> Bagaimana angka statistik pada boxplot menyadarkanmu tentang tanggung jawab pribadi?
+            <textarea class="lkpd-field" id="f_q12_2"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- 13 RENCANA AKSI LINGKUNGAN -->
+      <section class="page" data-page="13">
+        <div class="card">
+          <div class="sec-tag">12 • Tindak Lanjut</div>
+          <h2>Rencana aksi lingkungan</h2>
+          <label class="field"><span class="q-badge">1</span> Target penurunan sampah kelompok/pribadi dalam 2 minggu ke depan
+            <input type="text" class="lkpd-field" id="f_q13_1" placeholder="Contoh: Menurunkan median sampah sebesar 25%" />
+          </label>
+          <label class="field"><span class="q-badge">2</span> Langkah nyata (reduce, reuse, recycle, bawa botol/wadah sendiri)
+            <textarea class="lkpd-field" id="f_q13_2"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- 14 EVALUASI INDIVIDU -->
+      <section class="page" data-page="14">
+        <div class="card">
+          <div class="sec-tag">13 • Cek Pemahaman</div>
+          <h2>Evaluasi individu</h2>
+          <label class="field"><span class="q-badge">1</span> Diketahui data terurut: 4, 6, 7, 9, 10, 12, 15, 18. Tentukan Q1, Median, Q3, dan IQR!
+            <textarea class="lkpd-field" id="f_q14_1" placeholder="Tuliskan langkah penyelesaian dan hasilnya..."></textarea>
+          </label>
+          <label class="field"><span class="q-badge">2</span> Mengapa boxplot lebih informatif daripada sekadar nilai rata-rata untuk melihat ketimpangan data?
+            <textarea class="lkpd-field" id="f_q14_2"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- 15 KESIMPULAN DAN PENGIRIMAN -->
+      <section class="page" data-page="15">
+        <div class="card">
+          <div class="sec-tag">14 • Penutup</div>
+          <h2>Kesimpulan dan pengiriman</h2>
+          <label class="field"><span class="q-badge">1</span> Simpulkan pembelajaran hari ini mengenai boxplot dan pengelolaan sampah
+            <textarea class="lkpd-field" id="f_q15_1"></textarea>
+          </label>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">
+            <button type="button" class="btn btn-soft" id="btnCheckAll"><i data-lucide="check-circle"></i> Periksa Kelengkapan</button>
+            <button type="button" class="btn btn-primary" id="btnPdfBottom"><i data-lucide="download"></i> Unduh Hasil PDF</button>
+          </div>
+          <div class="status-msg" id="finalStatus"></div>
+        </div>
+      </section>
+
+      <!-- FOOTER PAGE NAVIGATION -->
+      <div class="page-nav">
+        <div class="page-nav-left">
+          <button type="button" class="btn btn-outline" id="btnHome">Beranda</button>
+          <button type="button" class="btn btn-outline" id="btnPrev">Sebelumnya</button>
+        </div>
+        <button type="button" class="btn btn-primary" id="btnNext">Berikutnya</button>
+      </div>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    MA Ihyaul Ulum Wedarijaksa • Matematika Kelas X/E • Belajar membaca data, belajar menjaga bumi 🌱
+  </footer>
+
+  <script>
+    if (window.lucide) lucide.createIcons();
+
+    const PAGES = [
+      "Sampul",
+      "Identitas siswa",
+      "Tujuan dan petunjuk",
+      "Orientasi masalah",
+      "Pengorganisasian kelompok",
+      "Pengumpulan data",
+      "Mengurutkan data",
+      "Lima nilai penting",
+      "Membuat boxplot",
+      "Interpretasi boxplot",
+      "Perbandingan antarkelompok",
+      "Refleksi ekoteologi",
+      "Rencana aksi lingkungan",
+      "Evaluasi individu",
+      "Kesimpulan dan pengiriman"
+    ];
+
+    let currentPage = 1;
+    const STORAGE_KEY = "elkpd_sampahku_boxplot_v1";
+
+    // Render Sidebar TOC
+    const tocList = document.getElementById("tocList");
+    PAGES.forEach((title, idx) => {
+      const pNum = idx + 1;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "nav-btn" + (pNum === 1 ? " active" : "");
+      btn.dataset.page = pNum;
+      btn.innerHTML = `<span class="nav-num">${String(pNum).padStart(2, "0")}</span><span>${title}</span>`;
+      btn.addEventListener("click", () => goToPage(pNum));
+      tocList.appendChild(btn);
+    });
+
+    // Render 4 Kelompok (Page 5)
+    const groupGrid = document.getElementById("groupGrid");
+    const ranges = ["Siswa 1 – 8", "Siswa 9 – 16", "Siswa 17 – 24", "Siswa 25 – 32"];
+    const roles = ["Ketua", "Pencatat", "Pemeriksa perhitungan", "Penyaji"];
+    for (let g = 1; g <= 4; g++) {
+      const box = document.createElement("div");
+      box.className = "group-box";
+      box.innerHTML = `<div class="group-title">Kelompok ${g}</div><div class="group-sub">${ranges[g - 1]}<br/>Peran: ketua, pencatat, pemeriksa perhitungan, dan penyaji.</div>`;
+      roles.forEach((role, rIdx) => {
+        const lbl = document.createElement("label");
+        lbl.className = "field";
+        lbl.style.marginBottom = "10px";
+        lbl.innerHTML = `${role}<input type="text" class="lkpd-field" id="f_g${g}_r${rIdx}" placeholder="Nama siswa" />`;
+        box.appendChild(lbl);
+      });
+      groupGrid.appendChild(box);
+    }
+
+    // Render 8 Data Inputs (Page 6)
+    const dataInputsGrid = document.getElementById("dataInputsGrid");
+    for (let i = 1; i <= 8; i++) {
+      const lbl = document.createElement("label");
+      lbl.className = "field";
+      lbl.innerHTML = `Data ${i}<input type="number" step="any" class="lkpd-field sample-val" id="f_d${i}" placeholder="Nilai ${i}" />`;
+      dataInputsGrid.appendChild(lbl);
+    }
+
+    function goToPage(pNum) {
+      currentPage = Math.max(1, Math.min(PAGES.length, pNum));
+      document.querySelectorAll(".page").forEach(sec => {
+        sec.classList.toggle("active", Number(sec.dataset.page) === currentPage);
+      });
+      document.querySelectorAll(".nav-btn").forEach(btn => {
+        btn.classList.toggle("active", Number(btn.dataset.page) === currentPage);
+      });
+      document.getElementById("pageIndicator").textContent =
+        `Halaman ${currentPage} dari ${PAGES.length} • ${PAGES[currentPage - 1]}`;
+      document.getElementById("btnPrev").disabled = currentPage === 1;
+      document.getElementById("btnNext").disabled = currentPage === PAGES.length;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function medianOf(arr) {
+      if (!arr.length) return null;
+      const mid = Math.floor(arr.length / 2);
+      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    }
+
+    function fmt(n) {
+      if (n === null || Number.isNaN(n)) return "-";
+      return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/, "");
+    }
+
+    function computeStats() {
+      const raw = [...document.querySelectorAll(".sample-val")]
+        .map(el => parseFloat(el.value))
+        .filter(v => !Number.isNaN(v))
+        .sort((a, b) => a - b);
+
+      const summaryEl = document.getElementById("dataSummaryText");
+      const sortedBox = document.getElementById("sortedDataBox");
+
+      if (!raw.length) {
+        summaryEl.textContent = "Belum ada data numerik valid yang dimasukkan.";
+        sortedBox.textContent = "-";
+        ["st_min", "st_q1", "st_med", "st_q3", "st_max", "st_iqr"].forEach(id => {
+          document.getElementById(id).textContent = "-";
+        });
+        renderBoxplot(null);
+        return null;
+      }
+
+      const min = raw[0];
+      const max = raw[raw.length - 1];
+      const med = medianOf(raw);
+      const half = Math.floor(raw.length / 2);
+      const lower = raw.slice(0, half);
+      const upper = raw.length % 2 === 0 ? raw.slice(half) : raw.slice(half + 1);
+      const q1 = medianOf(lower.length ? lower : raw);
+      const q3 = medianOf(upper.length ? upper : raw);
+      const iqr = q3 - q1;
+
+      summaryEl.innerHTML = `Terbaca <strong>${raw.length}</strong> data. Minimum = <strong>${fmt(min)}</strong>, Median = <strong>${fmt(med)}</strong>, Maksimum = <strong>${fmt(max)}</strong>.`;
+      sortedBox.textContent = raw.map(fmt).join(" , ");
+
+      document.getElementById("st_min").textContent = fmt(min);
+      document.getElementById("st_q1").textContent = fmt(q1);
+      document.getElementById("st_med").textContent = fmt(med);
+      document.getElementById("st_q3").textContent = fmt(q3);
+      document.getElementById("st_max").textContent = fmt(max);
+      document.getElementById("st_iqr").textContent = fmt(iqr);
+
+      const stats = { min, q1, med, q3, max, iqr, sorted: raw };
+      renderBoxplot(stats);
+      return stats;
+    }
+
+    function renderBoxplot(stats) {
+      const svg = document.getElementById("boxplotSvg");
+      if (!stats) {
+        svg.innerHTML = `<text x="340" y="90" text-anchor="middle" fill="#63756a" font-size="14" font-family="DM Sans, sans-serif">Isi data pada Halaman 06 untuk melihat diagram boxplot.</text>`;
+        return;
+      }
+      const { min, q1, med, q3, max } = stats;
+      const span = max - min === 0 ? 1 : max - min;
+      const padL = 60, padR = 60, w = 680 - padL - padR;
+      const xOf = v => padL + ((v - min) / span) * w;
+
+      const xMin = xOf(min), xQ1 = xOf(q1), xMed = xOf(med), xQ3 = xOf(q3), xMax = xOf(max);
+      const y = 76, boxH = 44;
+
+      svg.innerHTML = `
+        <line x1="${padL}" y1="128" x2="${680 - padR}" y2="128" stroke="#c8d6ca" stroke-width="1.5"/>
+        <line x1="${xMin}" y1="${y}" x2="${xQ1}" y2="${y}" stroke="#1f5c3f" stroke-width="2.5"/>
+        <line x1="${xQ3}" y1="${y}" x2="${xMax}" y2="${y}" stroke="#1f5c3f" stroke-width="2.5"/>
+        <line x1="${xMin}" y1="${y - 12}" x2="${xMin}" y2="${y + 12}" stroke="#1f5c3f" stroke-width="2.5"/>
+        <line x1="${xMax}" y1="${y - 12}" x2="${xMax}" y2="${y + 12}" stroke="#1f5c3f" stroke-width="2.5"/>
+        <rect x="${xQ1}" y="${y - boxH / 2}" width="${Math.max(4, xQ3 - xQ1)}" height="${boxH}" rx="6" fill="#d9ece0" stroke="#1f5c3f" stroke-width="2.5"/>
+        <line x1="${xMed}" y1="${y - boxH / 2}" x2="${xMed}" y2="${y + boxH / 2}" stroke="#143d29" stroke-width="3.5"/>
+        <text x="${xMin}" y="38" text-anchor="middle" font-size="11" font-weight="700" fill="#1e3328">Min (${fmt(min)})</text>
+        <text x="${xQ1}" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#1f5c3f">Q1 (${fmt(q1)})</text>
+        <text x="${xMed}" y="148" text-anchor="middle" font-size="11" font-weight="800" fill="#143d29">Med (${fmt(med)})</text>
+        <text x="${xQ3}" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#1f5c3f">Q3 (${fmt(q3)})</text>
+        <text x="${xMax}" y="38" text-anchor="middle" font-size="11" font-weight="700" fill="#1e3328">Max (${fmt(max)})</text>
+      `;
+    }
+
+    function updateProgress() {
+      const fields = [...document.querySelectorAll(".lkpd-field")];
+      const filled = fields.filter(el => el.value && el.value.trim() !== "").length;
+      const pct = fields.length ? Math.round((filled / fields.length) * 100) : 0;
+      document.getElementById("progressFill").style.width = pct + "%";
+      document.getElementById("progressPct").textContent = pct + "%";
+    }
+
+    function saveSession() {
+      const payload = {};
+      document.querySelectorAll(".lkpd-field").forEach(el => {
+        if (el.id) payload[el.id] = el.value;
+      });
+      try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        document.getElementById("finalStatus").textContent = "Jawaban tersimpan selama sesi aktif.";
+      } catch (e) {}
+    }
+
+    function loadSession() {
+      try {
+        const raw = sessionStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        Object.entries(data).forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (el) el.value = val;
+        });
+      } catch (e) {}
+    }
+
+    function downloadPdf() {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("Pustaka jsPDF belum termuat. Periksa koneksi internet.");
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const stats = computeStats();
+      const val = id => (document.getElementById(id)?.value || "").trim() || "-";
+
+      let y = 16;
+      const writeLine = (text, bold = false, size = 10.5) => {
+        doc.setFont("helvetica", bold ? "bold" : "normal");
+        doc.setFontSize(size);
+        const lines = doc.splitTextToSize(text, 182);
+        lines.forEach(line => {
+          if (y > 280) { doc.addPage(); y = 16; }
+          doc.text(line, 14, y);
+          y += size * 0.48 + 1.5;
+        });
+      };
+
+      writeLine("e-LKPD MATEMATIKA X: SAMPAHKU, TANGGUNG JAWABKU", true, 14);
+      writeLine("MA Ihyaul Ulum Wedarijaksa • Mengenal Boxplot melalui Data Sampah Pribadi", false, 9.5);
+      y += 3;
+      writeLine(`Nama: ${val("f_nama")}   |   Kelas: ${val("f_kelas")}   |   Absen: ${val("f_absen")}   |   Kelompok: ${val("f_kelompok")}`, true, 10);
+      writeLine(`Tanggal: ${val("f_tanggal")}   |   Anggota: ${val("f_anggota")}`, false, 9.5);
+      y += 2;
+
+      if (stats) {
+        writeLine(`Data Terurut: ${stats.sorted.map(fmt).join(", ")}`, true, 10);
+        writeLine(`Min: ${fmt(stats.min)} | Q1: ${fmt(stats.q1)} | Median: ${fmt(stats.med)} | Q3: ${fmt(stats.q3)} | Max: ${fmt(stats.max)} | IQR: ${fmt(stats.iqr)}`, false, 10);
+      } else {
+        writeLine("Statistik Boxplot: Belum ada data numerik yang diisi.", false, 10);
+      }
+      y += 3;
+
+      const items = [
+        ["Hlm 4 • Q1 (Perbedaan sampah siswa)", val("f_q4_1")],
+        ["Hlm 4 • Q2 (Dampak sampah tak terkelola)", val("f_q4_2")],
+        ["Hlm 4 • Q3 (Peran statistika)", val("f_q4_3")],
+        ["Hlm 4 • Q4 (Tanggung jawab ciptaan Tuhan)", val("f_q4_4")],
+        ["Hlm 7 • Mengurutkan data", val("f_q7_1")],
+        ["Hlm 8 • Makna Q1, Median, Q3", val("f_q8_1")],
+        ["Hlm 9 • Analisis bentuk boxplot", val("f_q9_1")],
+        ["Hlm 10 • 25% tertinggi/terendah & nilai ekstrem", `${val("f_q10_1")} / ${val("f_q10_2")}`],
+        ["Hlm 11 • Perbandingan antarkelompok", val("f_q11_1")],
+        ["Hlm 12 • Refleksi ekoteologi", `${val("f_q12_1")} / ${val("f_q12_2")}`],
+        ["Hlm 13 • Rencana aksi lingkungan", `Target: ${val("f_q13_1")} | Langkah: ${val("f_q13_2")}`],
+        ["Hlm 14 • Evaluasi individu", `Soal 1: ${val("f_q14_1")} | Soal 2: ${val("f_q14_2")}`],
+        ["Hlm 15 • Kesimpulan", val("f_q15_1")]
+      ];
+
+      items.forEach(([label, ans]) => {
+        writeLine(label, true, 10);
+        writeLine(ans, false, 9.8);
+        y += 2;
+      });
+
+      const safeName = (val("f_nama") === "-" ? "Siswa" : val("f_nama")).replace(/[^a-zA-Z0-9_-]+/g, "_");
+      doc.save(`eLKPD_Sampahku_${safeName}.pdf`);
+    }
+
+    document.getElementById("btnHome").addEventListener("click", () => goToPage(1));
+    document.getElementById("btnPrev").addEventListener("click", () => goToPage(currentPage - 1));
+    document.getElementById("btnNext").addEventListener("click", () => goToPage(currentPage + 1));
+    document.querySelectorAll("[data-go]").forEach(btn => {
+      btn.addEventListener("click", () => goToPage(Number(btn.dataset.go)));
+    });
+
+    document.addEventListener("input", () => {
+      computeStats();
+      updateProgress();
+      saveSession();
+    });
+
+    document.getElementById("btnSave").addEventListener("click", saveSession);
+    document.getElementById("btnPdfTop").addEventListener("click", downloadPdf);
+    document.getElementById("btnPdfBottom").addEventListener("click", downloadPdf);
+    document.getElementById("btnCheckAll").addEventListener("click", () => {
+      const fields = [...document.querySelectorAll(".lkpd-field")];
+      const empty = fields.filter(el => !el.value || el.value.trim() === "").length;
+      document.getElementById("finalStatus").textContent = empty === 0
+        ? "Semua kolom sudah terisi lengkap! Silakan unduh PDF."
+        : `Masih ada ${empty} kolom yang belum diisi. Anda tetap dapat mengunduh PDF kapan saja.`;
+    });
+
+    // Set default date if empty
+    const dateEl = document.getElementById("f_tanggal");
+    if (!dateEl.value) dateEl.value = "2026-11-21";
+
+    loadSession();
+    computeStats();
+    updateProgress();
+    goToPage(1);
+  </script>
+</body>
+</html>
